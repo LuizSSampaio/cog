@@ -1,0 +1,86 @@
+use thiserror::Error;
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Value {
+    Int(isize),
+    Float(f64),
+    Bool(bool),
+    Str(String),
+    Char(char),
+}
+
+macro_rules! impl_from_int {
+    ($($t:ty), *) => {
+        $(impl From<$t> for Value {
+            fn from(value: $t) -> Self {
+                Value::Int(value as isize)
+            }
+        })*
+    };
+}
+impl_from_int!(
+    i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+);
+
+macro_rules! impl_from_float {
+    ($($t:ty), *) => {
+        $(impl From<$t> for Value {
+            fn from(value: $t) -> Self {
+                Value::Float(value as f64)
+            }
+        })*
+    };
+}
+impl_from_float!(f32, f64);
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Value::Bool(value)
+    }
+}
+
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Value::Str(value)
+    }
+}
+
+impl From<&str> for Value {
+    fn from(value: &str) -> Self {
+        Value::Str(value.to_string())
+    }
+}
+
+impl From<char> for Value {
+    fn from(value: char) -> Self {
+        Value::Char(value)
+    }
+}
+
+impl TryFrom<Value> for isize {
+    type Error = ValueError;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::Int(i) => Ok(i),
+            _ => Err(ValueError::InvalidConversion),
+        }
+    }
+}
+
+impl TryFrom<Value> for f64 {
+    type Error = ValueError;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::Float(f) => Ok(f),
+            _ => Err(ValueError::InvalidConversion),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ValueError {
+    #[error("Invalid conversion between value types")]
+    InvalidConversion,
+}
