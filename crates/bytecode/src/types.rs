@@ -14,8 +14,8 @@ pub enum Type {
     Char = 0x24,
 }
 
-impl From<Value> for Type {
-    fn from(value: Value) -> Self {
+impl From<&Value> for Type {
+    fn from(value: &Value) -> Self {
         match value {
             Value::Int(_) => Self::Int,
             Value::Float(_) => Self::Float,

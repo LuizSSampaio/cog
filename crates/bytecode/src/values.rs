@@ -66,7 +66,7 @@ impl TryFrom<Value> for isize {
         match value {
             Value::Int(i) => Ok(i),
             _ => Err(ValueError::InvalidConversion {
-                from: Type::from(value),
+                from: Type::from(&value),
                 to: Type::Int,
             }),
         }
@@ -80,7 +80,7 @@ impl TryFrom<Value> for f64 {
         match value {
             Value::Float(f) => Ok(f),
             _ => Err(ValueError::InvalidConversion {
-                from: Type::from(value),
+                from: Type::from(&value),
                 to: Type::Float,
             }),
         }
