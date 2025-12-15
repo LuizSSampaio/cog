@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::types::Type;
+use crate::types::{Type, TypeError};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
@@ -84,6 +84,28 @@ impl TryFrom<Value> for f64 {
                 to: Type::Float,
             }),
         }
+    }
+}
+
+impl From<Value> for Vec<u8> {
+    fn from(value: Value) -> Self {
+        let mut buffer = Vec::new();
+        buffer.push(Type::from(&value) as u8);
+
+        match value {
+            Value::Int(val) => buffer.extend_from_slice(&(val as i64).to_le_bytes()),
+            Value::Float(val) => buffer.extend_from_slice(&val.to_le_bytes()),
+            Value::Bool(val) => buffer.push(val as u8),
+            Value::Str(val) => {
+                let bytes = val.as_bytes();
+                let len = bytes.len() as u32;
+                buffer.extend_from_slice(&len.to_le_bytes());
+                buffer.extend_from_slice(bytes);
+            }
+            Value::Char(val) => buffer.push(val as u8),
+        }
+
+        buffer
     }
 }
 
