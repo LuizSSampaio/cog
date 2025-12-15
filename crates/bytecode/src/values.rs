@@ -109,8 +109,76 @@ impl From<Value> for Vec<u8> {
     }
 }
 
+impl TryFrom<Vec<u8>> for Value {
+    type Error = ValueError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        let Some(tag) = value.first() else {
+            return Err(ValueError::NoTag);
+        };
+        let data_len = value.len() - 1;
+
+        match Type::try_from(tag.to_owned())? {
+            Type::Int => {
+                if data_len != 8 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                let mut slice = [0u8; 8];
+                slice.copy_from_slice(&value[1..]);
+                Ok(Value::Int(i64::from_le_bytes(slice) as isize))
+            }
+            Type::Float => {
+                if data_len != 8 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                let mut slice = [0u8; 8];
+                slice.copy_from_slice(&value[1..]);
+                Ok(Value::Float(f64::from_le_bytes(slice)))
+            }
+            Type::Bool => {
+                if data_len != 1 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                Ok(Value::Bool(value[1] != 0))
+            }
+            Type::Str => {
+                if data_len < 4 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                let mut len_slice = [0u8; 4];
+                len_slice.copy_from_slice(&value[1..=4]);
+
+                let len = u32::from_le_bytes(len_slice) as usize;
+                if data_len != len + 4 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                let str = String::from_utf8_lossy(&value[5..]);
+                Ok(Value::Str(str.to_string()))
+            }
+            Type::Char => {
+                if data_len != 1 {
+                    return Err(ValueError::IncompatibleSize);
+                }
+
+                Ok(Value::Char(value[1] as char))
+            }
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum ValueError {
     #[error("Invalid conversion between {from} and {to}")]
     InvalidConversion { from: Type, to: Type },
+    #[error("Buffer don't has a type tag")]
+    NoTag,
+    #[error("Value size is incompatible with the received buffer size")]
+    IncompatibleSize,
+    #[error(transparent)]
+    Type(#[from] TypeError),
 }
