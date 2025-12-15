@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::types::Type;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
     Int(isize),
@@ -63,7 +65,10 @@ impl TryFrom<Value> for isize {
     fn try_from(value: Value) -> Result<Self, Self::Error> {
         match value {
             Value::Int(i) => Ok(i),
-            _ => Err(ValueError::InvalidConversion),
+            _ => Err(ValueError::InvalidConversion {
+                from: Type::from(value),
+                to: Type::Int,
+            }),
         }
     }
 }
@@ -74,13 +79,16 @@ impl TryFrom<Value> for f64 {
     fn try_from(value: Value) -> Result<Self, Self::Error> {
         match value {
             Value::Float(f) => Ok(f),
-            _ => Err(ValueError::InvalidConversion),
+            _ => Err(ValueError::InvalidConversion {
+                from: Type::from(value),
+                to: Type::Float,
+            }),
         }
     }
 }
 
 #[derive(Debug, Error)]
 pub enum ValueError {
-    #[error("Invalid conversion between value types")]
-    InvalidConversion,
+    #[error("Invalid conversion between {from} and {to}")]
+    InvalidConversion { from: Type, to: Type },
 }
