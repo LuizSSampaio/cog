@@ -1,14 +1,15 @@
 use thiserror::Error;
 
+/// Hexadecimals with this template are OpCodes 0x1_
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum OpCode {
-    Constant,
-    Negate,
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Return,
+    Constant = 0x10,
+    Negate = 0x11,
+    Add = 0x12,
+    Subtract = 0x13,
+    Multiply = 0x14,
+    Divide = 0x15,
+    Return = 0x16,
 }
 
 impl TryFrom<u8> for OpCode {
@@ -16,13 +17,13 @@ impl TryFrom<u8> for OpCode {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            x if x == OpCode::Constant as u8 => Ok(OpCode::Constant),
-            x if x == OpCode::Negate as u8 => Ok(OpCode::Negate),
-            x if x == OpCode::Add as u8 => Ok(OpCode::Add),
-            x if x == OpCode::Subtract as u8 => Ok(OpCode::Subtract),
-            x if x == OpCode::Multiply as u8 => Ok(OpCode::Multiply),
-            x if x == OpCode::Divide as u8 => Ok(OpCode::Divide),
-            x if x == OpCode::Return as u8 => Ok(OpCode::Return),
+            0x10 => Ok(OpCode::Constant),
+            0x11 => Ok(OpCode::Negate),
+            0x12 => Ok(OpCode::Add),
+            0x13 => Ok(OpCode::Subtract),
+            0x14 => Ok(OpCode::Multiply),
+            0x15 => Ok(OpCode::Divide),
+            0x16 => Ok(OpCode::Return),
             _ => Err(OpCodeError::InvalidOpCode(value)),
         }
     }
